@@ -34,6 +34,26 @@ def clean_ocr_with_llm(prompt_template: str, ocr_text: str) -> str:
 
     return response.text.strip()
 
+# Validation Check
+def validate(original:str, corrected:str) -> str:
+    original_length = len(original)
+    corrected_length = len(corrected)
+    original_lines = len(original.strip().splitlines())
+    corrected_lines = len(corrected.strip().splitlines())
+    line_ratio = abs(corrected_lines - original_lines) / max(1, original_lines)
+
+    with open("analysis.md", "w", encoding="utf-8") as f:
+        f.write("# Hallucination Detection\n\n")
+        f.write("## Line Count Deviation Check\n")
+        f.write(f"- Original lines: {original_lines}\n")
+        f.write(f"- Corrected lines: {corrected_lines}\n")
+        f.write(f"- Line Ratio: {line_ratio}\n\n")
+
+        f.write("## Length Comparison Check\n")
+        f.write(f"- Original length: {original_length}\n")
+        f.write(f"- Corrected length: {corrected_length}\n")
+        f.write(f"- Length Comparison: {"Original Length is Higher" if corrected_length<=original_length else "Corrected Length is Higher"}\n")
+
 def main():
     ocr_text = load_file(INPUT_FILE)
     prompt_template = load_file(PROMPT_FILE)
@@ -41,14 +61,11 @@ def main():
     # Cleaning
     cleaned_text = clean_ocr_with_llm(prompt_template, ocr_text)
 
-    # Halluncinaton Check
-    report = validate(ocr_text, cleaned_text)
+    # Validation Check
+    validate(ocr_text, cleaned_text)
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(cleaned_text)
-
-    with open(REPORT_FILE, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
