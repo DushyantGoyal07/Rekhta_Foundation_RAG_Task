@@ -1,5 +1,4 @@
 import os
-import json
 import warnings
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -11,7 +10,6 @@ load_dotenv()
 INPUT_FILE = "input.txt"
 PROMPT_FILE = "prompt.txt"
 OUTPUT_FILE = "output.txt"
-REPORT_FILE = "report.json"
 MODEL_NAME = "gemini-2.5-flash-lite"
 
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -38,16 +36,16 @@ def clean_ocr_with_llm(prompt_template: str, ocr_text: str) -> str:
 def validate(original:str, corrected:str) -> str:
     original_length = len(original)
     corrected_length = len(corrected)
-    original_lines = len(original.strip().splitlines())
-    corrected_lines = len(corrected.strip().splitlines())
-    line_ratio = abs(corrected_lines - original_lines) / max(1, original_lines)
+    original_lines = len([l for l in original.splitlines() if l.strip()])
+    corrected_lines = len([l for l in corrected.splitlines() if l.strip()])
+    line_deviation = abs(corrected_lines - original_lines) / max(1, original_lines)
 
     with open("analysis.md", "w", encoding="utf-8") as f:
         f.write("# Hallucination Detection\n\n")
         f.write("## Line Count Deviation Check\n")
         f.write(f"- Original lines: {original_lines}\n")
         f.write(f"- Corrected lines: {corrected_lines}\n")
-        f.write(f"- Line Ratio: {line_ratio}\n\n")
+        f.write(f"- Line Deviation: {line_deviation}\n\n")
 
         f.write("## Length Comparison Check\n")
         f.write(f"- Original length: {original_length}\n")
